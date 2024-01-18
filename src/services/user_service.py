@@ -11,8 +11,20 @@ from src.utils.exceptions import DatabaseException
 
 logger = logging.getLogger(__name__)
 
-
 def create_account(payload: RegisterUser, response: Response) -> RegisterResponse:
+    """
+    Create a user account with the provided registration payload.
+
+    Parameters:
+    - payload (RegisterUser): Registration payload.
+    - response (Response): FastAPI Response object.
+
+    Returns:
+    RegisterResponse: Registration response.
+
+    Raises:
+    - DatabaseException: If there is an error in the database operation.
+    """
     hashed_password = hash_password(payload.password)
     stmt = insert(UserModel).values(
         first_name=payload.firstName,
@@ -34,10 +46,24 @@ def create_account(payload: RegisterUser, response: Response) -> RegisterRespons
             response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
             return {"success": False, "message": "User Already Exists!", "id": None}
         except SQLAlchemyError as error:
-            raise DatabaseException() from error
+            raise DatabaseException("Error during user registration") from error
 
 
 def authenticate_user(payload: LoginUser, response: Response) -> LoginResponse:
+    """
+    Authenticate a user with the provided login payload.
+
+    Parameters:
+    - payload (LoginUser): Login payload.
+    - response (Response): FastAPI Response object.
+
+    Returns:
+    LoginResponse: Login response.
+
+    Raises:
+    - SQLAlchemyError: If there is an error in the database operation.
+    - Exception: For unexpected errors during user authentication.
+    """
     try:
         query = (
             select(UserModel)
@@ -91,15 +117,28 @@ def authenticate_user(payload: LoginUser, response: Response) -> LoginResponse:
     except SQLAlchemyError as error:
         response.status_code = status.HTTP_400_BAD_REQUEST
         logger.exception("Error during user authentication")
-        return {"success": False, "message": str(error)}
+        raise SQLAlchemyError("Error during user authentication") from error
 
     except Exception as error:
         response.status_code = status.HTTP_400_BAD_REQUEST
         logger.exception("Unexpected error during user authentication")
-        return {"success": False, "message": "An unexpected error occurred."}
+        raise Exception("Unexpected error during user authentication") from error
 
 
-def getUserInfoByID(userId: str, response: Response):
+def get_user_info_by_id(user_id: str, response: Response):
+    """
+    Retrieve user information by ID.
+
+    Parameters:
+    - user_id (str): User ID.
+    - response (Response): FastAPI Response object.
+
+    Returns:
+    dict: User information.
+
+    Raises:
+    - SQLAlchemyError: If there is an error in the database operation.
+    """
     try:
         query = (
             select(
@@ -112,7 +151,7 @@ def getUserInfoByID(userId: str, response: Response):
                 UserModel.is_deleted,
                 UserModel.is_verified,
             )
-            .where(UserModel.id == userId)
+            .where(UserModel.id == user_id)
             .limit(1)
         )
 
@@ -121,31 +160,48 @@ def getUserInfoByID(userId: str, response: Response):
             user_data = result.fetchone()
 
             user_dict = dict(zip(result.keys(), user_data))
+            user_dict["id"] = str(user_dict["id"])
 
             return {"success": True, "data": user_dict}
 
     except SQLAlchemyError as error:
         response.status_code = status.HTTP_400_BAD_REQUEST
-        logger.exception("Error during user retriving data by id")
-        return {"success": False, "message": str(error)}
+        logger.exception("Error during user retrieving data by id")
+        raise SQLAlchemyError("Error during user retrieval by ID") from error
 
 
-def getAllUsersWithPagination(response: Response, page: int = 1, page_size: int = 10):
+def get_all_users_with_pagination(response: Response, page: int = 1, page_size: int = 10):
+    """
+    Retrieve all users with pagination.
+
+    Parameters:
+    - response (Response): FastAPI Response object.
+    - page (int): Page number (default: 1).
+    - page_size (int): Number of items per page (default: 10).
+
+    Returns:
+    dict: Response containing the list of users.
+
+    Raises:
+    - NoResultFound: If no users are found.
+    - SQLAlchemyError: If there is an error in the database operation.
+    """
     try:
         skip = (page - 1) * page_size
         query = select(UserModel).offset(skip).limit(page_size)
 
         with engine.begin() as conn:
             result = conn.execute(query)
-            users_list = [dict((key, value) for key, value in zip(result.keys(), user) if key != "password") for user in result.fetchall()]
+            # users_list = [dict((key, value) for key, value in zip(result.keys(), user) if key != "password") for user in result.fetchall()]
+            users_list = [dict((key, str(value)) if key == "id" else (key, value) for key, value in zip(result.keys(), user) if key != "password") for user in result.fetchall()]
 
             return {"success": True, "data": users_list}
 
     except NoResultFound:
         response.status_code = status.HTTP_404_NOT_FOUND
-        return {"success": False, "message": "No users found"}
+        raise NoResultFound("No users found") from None
 
     except SQLAlchemyError as error:
         response.status_code = status.HTTP_400_BAD_REQUEST
         logger.exception("Error during user retrieving data by id")
-        return {"success": False, "message": str(error)}
+        raise SQLAlchemyError("Error during user retrieval with pagination") from error

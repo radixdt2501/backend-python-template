@@ -1,19 +1,21 @@
 import logging
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.utils.index import get_required_env_variable
 
-from dotenv import load_dotenv
-load_dotenv(dotenv_path="src/config/env-files/.env.local")
 
+# Load environment variables
+load_dotenv(dotenv_path="src/config/env-files/.env.local")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-# Load environment variables
+# Load required environment variables
 POSTGRES_DB_NAME = get_required_env_variable("POSTGRES_DB_NAME")
 POSTGRES_USERNAME = get_required_env_variable("POSTGRES_USERNAME")
 POSTGRES_PASSWORD = get_required_env_variable("POSTGRES_PASSWORD")
@@ -32,7 +34,7 @@ try:
     with engine.connect() as connection:
         logger.info("Database connection successful")
 
-except Exception as error:
+except (Exception, SQLAlchemyError) as error:
     # Log any errors
     logger.error(f"Database connection error: {error}")
 
