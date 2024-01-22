@@ -25,10 +25,7 @@ src
 |       |-- .env_test
 |       |-- .env_stage
 |       |-- .env_prod
-|       |-- sample_env
-|-- controllers
-|   |-- user_controller.py
-|   |-- project_controller.py
+|       |-- .sample.env
 |-- middlewares
 |   |-- authentication_middleware.py
 |-- models
