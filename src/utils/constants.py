@@ -6,7 +6,7 @@ API_ENDPOINTS = {
         "REGISTER": "/register",
         "LOGIN": "/login",
         "WHO_AM_I": "/whoami",
-        "USER_BY_ID": "/{userId}",
+        "USER_BY_ID": "/{user_id}",
         "GET_ALL_USERS": "/",
     },
     "PROJECT": {
@@ -28,7 +28,7 @@ Structure:
         "REGISTER": "/register",
         "LOGIN": "/login",
         "WHO_AM_I": "/whoami",
-        "USER_BY_ID": "/{userId}",
+        "USER_BY_ID": "/{user_id}",
         "GET_ALL_USERS": "/"
     },
     "PROJECT": {

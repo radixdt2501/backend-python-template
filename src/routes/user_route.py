@@ -8,19 +8,19 @@ from fastapi import (
     UploadFile,
 )
 from typing import Annotated
-from middlewares.validate_file_middleware import validate_file
 
 from src.utils.constants import API_ENDPOINTS
 from src.utils.types import (
     GetAllUsers,
     RegisterUser,
-    RegisterResponse,
+    BaseSuccessResponse,
     LoginUser,
     LoginResponse,
     RolesEnum,
     UserInfoExtended,
     WhoAMIResponse,
 )
+from src.utils.index import is_valid_uuid
 from src.services.user_service import (
     create_account,
     authenticate_user,
@@ -28,6 +28,7 @@ from src.services.user_service import (
     get_user_info_by_id,
     update_user_with_image,
 )
+from src.middlewares.validate_file_middleware import validate_file
 from src.middlewares.authentication_middleware import verify_auth_token
 
 router = APIRouter(tags=["Users"])
@@ -39,9 +40,9 @@ ValidateFileMiddleWare = Annotated[File, Depends(validate_file)]
 @router.post(
     API_ENDPOINTS["USERS"]["REGISTER"],
     description="Register Account API",
-    response_model=RegisterResponse,
+    response_model=BaseSuccessResponse,
 )
-def register_user(body: RegisterUser, response: Response) -> RegisterResponse:
+def register_user(body: RegisterUser, response: Response) -> BaseSuccessResponse:
     """
     Endpoint for registering a new user.
 
@@ -163,13 +164,14 @@ def get_all_users(
 @router.put(
     API_ENDPOINTS["USERS"]["USER_BY_ID"],
     description="Update User Information with Profile Picture Image",
+    response_model=BaseSuccessResponse,
 )
 async def update_user(
-    _: AuthMiddleWare,
-    __: ValidateFileMiddleWare,
-    response: Response,
     user_id: str,
-    file: Annotated[UploadFile | None, File()] = None,
+    __: AuthMiddleWare,
+    ___: ValidateFileMiddleWare,
+    response: Response,
+    file: Annotated[UploadFile, File()] = None,
     first_name: Annotated[str, Form()] = None,
     last_name: Annotated[str, Form()] = None,
     username: Annotated[str, Form()] = None,
@@ -177,7 +179,7 @@ async def update_user(
     role: Annotated[RolesEnum, Form()] = None,
     is_verified: Annotated[bool, Form()] = False,
     is_deleted: Annotated[bool, Form()] = False,
-):
+) -> BaseSuccessResponse:
     """
     Update user information along with the profile picture.
 
@@ -186,7 +188,7 @@ async def update_user(
     - __: ValidateFileMiddleWare: Custom file validation middleware.
     - response (Response): FastAPI Response object.
     - user_id (str): User ID to update.
-    - file (Annotated[UploadFile, File()]): Uploaded profile picture file.
+    - file: Annotated[UploadFile, File()]: Uploaded profile picture file.
     - first_name (Annotated[str, Form()]): First name of the user.
     - last_name (Annotated[str, Form()]): Last name of the user.
     - username (Annotated[str, Form()]): Username of the user.
@@ -202,6 +204,7 @@ async def update_user(
     IntegrityError: If there is an integrity violation (e.g., unique constraint).
     SQLAlchemyError: If there is an error in the database operation.
     """
+    is_valid_uuid(user_id)
     profile_picture_path = f"/uploads/{file.filename}" if file else None
 
     payload: UserInfoExtended = {

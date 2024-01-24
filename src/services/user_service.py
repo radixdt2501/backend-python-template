@@ -8,10 +8,9 @@ from sqlalchemy import insert, or_, select, update
 
 from src.utils.types import (
     RegisterUser,
-    RegisterResponse,
+    BaseSuccessResponse,
     LoginUser,
     LoginResponse,
-    UserInfoExtended,
 )
 from src.models.user_model import UserModel
 from src.utils.index import generate_jwt_token, hash_password, verify_password
@@ -21,7 +20,7 @@ from src.utils.exceptions import DatabaseException
 logger = logging.getLogger(__name__)
 
 
-def create_account(payload: RegisterUser, response: Response) -> RegisterResponse:
+def create_account(payload: RegisterUser, response: Response) -> BaseSuccessResponse:
     """
     Create a user account with the provided registration payload.
 

@@ -4,7 +4,7 @@ from src.utils.constants import ALLOWED_IMAGES_TYPE, MAX_FILE_UPLOAD_SIZE
 
 
 def validate_file(
-    file: Annotated[UploadFile | None, File()] = None,
+    file: Annotated[UploadFile, File()] = None,
 ) -> None:
     """
     Validates the uploaded image file and saves it if it meets the criteria.

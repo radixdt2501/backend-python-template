@@ -1,6 +1,8 @@
 import os
+from typing import Annotated
 import bcrypt
-from fastapi import HTTPException, status
+import uuid
+from fastapi import HTTPException, Path, status
 from jwt import encode, decode, DecodeError, ExpiredSignatureError
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -108,4 +110,25 @@ def decode_jwt_token(
     except (DecodeError, ExpiredSignatureError):
         raise HTTPException(
             detail="Invalid Token!", status_code=status.HTTP_401_UNAUTHORIZED
+        )
+
+
+def is_valid_uuid(value: Annotated[str, Path()]):
+    """
+    Check if the given value is a valid UUID.
+
+    Parameters:
+    - value (str): The value to be checked.
+
+    Returns:
+    - bool: True if the value is a valid UUID, False otherwise.
+    """
+    print("value", value)
+    try:
+        uuid.UUID(str(value), version=4)
+        return True
+    except ValueError:
+        print("valuererrrro")
+        raise HTTPException(
+            detail=f"Invalid ID :: => {value}", status_code=status.HTTP_406_NOT_ACCEPTABLE
         )

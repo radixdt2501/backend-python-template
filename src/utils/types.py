@@ -68,7 +68,7 @@ class LoginResponse(BaseModel):
     token: Optional[str]
 
 
-class RegisterResponse(BaseModel):
+class BaseSuccessResponse(BaseModel):
     """
     Model for the response after a user registration.
 
