@@ -39,6 +39,7 @@ class UserModel(Base):
     username = Column(String, unique=True, index=True, nullable=False, doc="Unique username")
     email = Column(String, unique=True, index=True, nullable=False, doc="User's email address")
     password = Column(String, nullable=False, doc="User's hashed password")
+    profile_picture = Column(String, nullable=True, doc="User's Profile Picture URL")
     role = Column(
         Enum(RolesEnum),
         default=RolesEnum.USER,
@@ -70,8 +71,8 @@ class UserModel(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=Utcnow(),
-        onupdate=Utcnow(),
-        server_onupdate=Utcnow(),
+        # onupdate=Utcnow(),
+        # server_onupdate=Utcnow(),
         doc="Timestamp of user last update",
     )
 

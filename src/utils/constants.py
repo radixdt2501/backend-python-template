@@ -7,12 +7,14 @@ API_ENDPOINTS = {
         "LOGIN": "/login",
         "WHO_AM_I": "/whoami",
         "USER_BY_ID": "/{userId}",
-        "GET_ALL_USERS": "/"
+        "GET_ALL_USERS": "/",
     },
     "PROJECT": {
         "BASE_URL": "/projects",
     },
 }
+ALLOWED_IMAGES_TYPE = ["image/jpeg", "image/jpg", "image/png"]
+MAX_FILE_UPLOAD_SIZE = 2097152
 
 # Docstring for API_ENDPOINTS
 """

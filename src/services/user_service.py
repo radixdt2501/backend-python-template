@@ -1,15 +1,25 @@
 import logging
-from fastapi import Response, status
+from datetime import datetime, timezone
+import os
+from typing import Annotated, Dict
+from fastapi import File, HTTPException, Response, UploadFile, status
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, NoResultFound
-from sqlalchemy import insert, or_, select
+from sqlalchemy import insert, or_, select, update
 
-from src.utils.types import RegisterUser, RegisterResponse, LoginUser, LoginResponse
+from src.utils.types import (
+    RegisterUser,
+    RegisterResponse,
+    LoginUser,
+    LoginResponse,
+    UserInfoExtended,
+)
 from src.models.user_model import UserModel
 from src.utils.index import generate_jwt_token, hash_password, verify_password
 from src.config.database.db_connection import engine
 from src.utils.exceptions import DatabaseException
 
 logger = logging.getLogger(__name__)
+
 
 def create_account(payload: RegisterUser, response: Response) -> RegisterResponse:
     """
@@ -30,7 +40,7 @@ def create_account(payload: RegisterUser, response: Response) -> RegisterRespons
         first_name=payload.firstName,
         last_name=payload.lastName,
         username=payload.username,
-        email=payload.email,
+        email=payload.email.lower(),
         password=hashed_password,
         role=payload.role,
     )
@@ -69,7 +79,7 @@ def authenticate_user(payload: LoginUser, response: Response) -> LoginResponse:
             select(UserModel)
             .where(
                 or_(
-                    UserModel.email == payload.identifier,
+                    UserModel.email == payload.identifier.lower(),
                     UserModel.username == payload.identifier,
                 )
             )
@@ -80,8 +90,13 @@ def authenticate_user(payload: LoginUser, response: Response) -> LoginResponse:
             result = conn.execute(query)
             user_data = result.fetchone()
 
-            user_dict = dict(zip(result.keys(), user_data))
+            if user_data is None:
+                raise HTTPException(
+                    detail="This account is not registered with us!",
+                    status_code=status.HTTP_404_NOT_FOUND,
+                )
 
+            user_dict = dict(zip(result.keys(), user_data))
             is_password_verified = verify_password(
                 payload.password, user_dict["password"]
             )
@@ -114,15 +129,10 @@ def authenticate_user(payload: LoginUser, response: Response) -> LoginResponse:
                     "token": None,
                 }
 
-    except SQLAlchemyError as error:
+    except (SQLAlchemyError, NoResultFound) as error:
         response.status_code = status.HTTP_400_BAD_REQUEST
         logger.exception("Error during user authentication")
-        raise SQLAlchemyError("Error during user authentication") from error
-
-    except Exception as error:
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        logger.exception("Unexpected error during user authentication")
-        raise Exception("Unexpected error during user authentication") from error
+        raise HTTPException(detail="Error during user authentication") from error
 
 
 def get_user_info_by_id(user_id: str, response: Response):
@@ -170,7 +180,9 @@ def get_user_info_by_id(user_id: str, response: Response):
         raise SQLAlchemyError("Error during user retrieval by ID") from error
 
 
-def get_all_users_with_pagination(response: Response, page: int = 1, page_size: int = 10):
+def get_all_users_with_pagination(
+    response: Response, page: int = 1, page_size: int = 10
+):
     """
     Retrieve all users with pagination.
 
@@ -193,7 +205,14 @@ def get_all_users_with_pagination(response: Response, page: int = 1, page_size: 
         with engine.begin() as conn:
             result = conn.execute(query)
             # users_list = [dict((key, value) for key, value in zip(result.keys(), user) if key != "password") for user in result.fetchall()]
-            users_list = [dict((key, str(value)) if key == "id" else (key, value) for key, value in zip(result.keys(), user) if key != "password") for user in result.fetchall()]
+            users_list = [
+                dict(
+                    (key, str(value)) if key == "id" else (key, value)
+                    for key, value in zip(result.keys(), user)
+                    if key != "password"
+                )
+                for user in result.fetchall()
+            ]
 
             return {"success": True, "data": users_list}
 
@@ -205,3 +224,68 @@ def get_all_users_with_pagination(response: Response, page: int = 1, page_size: 
         response.status_code = status.HTTP_400_BAD_REQUEST
         logger.exception("Error during user retrieving data by id")
         raise SQLAlchemyError("Error during user retrieval with pagination") from error
+
+
+def update_user_with_image(
+    response: Response,
+    user_info_extended: dict,
+    file: Annotated[UploadFile, File()],
+) -> Dict[str, any]:
+    """
+    Update user information along with the profile picture path.
+
+    Parameters:
+    - response (Response): FastAPI Response object.
+    - user_info_extended (dict): User information payload.
+
+    Returns:
+    Dict[str, any]: Dictionary containing the success status, message, and user ID if successful.
+
+    Raises:
+    IntegrityError: If there is an integrity violation (e.g., unique constraint).
+    SQLAlchemyError: If there is an error in the database operation.
+    """
+    try:
+        payload = {}
+        for key, val in user_info_extended.items():
+            if val is not None:
+                if key == "email":
+                    payload[key] = val.lower()
+                else:
+                    payload[key] = val
+        stmt = (
+            update(UserModel)
+            .where(UserModel.id == payload.get("id"))
+            .values(
+                **payload,
+                updated_at=datetime.utcnow().replace(tzinfo=timezone.utc),
+            )
+        )
+        with engine.begin() as conn:
+            conn.execute(stmt)
+            folder_path = "uploads"
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+
+            if file:
+                file_path = os.path.join(folder_path, file.filename)
+                with open(file_path, "wb") as local_file:
+                    local_file.write(file.file.read())
+
+        return {
+            "success": True,
+            "message": "User Updated Successfully",
+            "id": str(payload.get("id")),
+        }
+
+    except IntegrityError as error:
+        response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+        return {
+            "success": False,
+            "message": "User Already Exists with that information",
+            "id": None,
+        }
+
+    except SQLAlchemyError as error:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {"success": False, "message": "Failed to update user!", "id": None}
