@@ -1,11 +1,12 @@
 import os
-from typing import Annotated
-import bcrypt
 import uuid
-from fastapi import HTTPException, Path, status
-from jwt import encode, decode, DecodeError, ExpiredSignatureError
 from datetime import datetime, timedelta
+from typing import Annotated
+
+import bcrypt
 from dotenv import load_dotenv
+from fastapi import HTTPException, Path, status
+from jwt import DecodeError, ExpiredSignatureError, decode, encode
 
 from src.utils.exceptions import MissingEnvironmentVariable
 
@@ -130,5 +131,6 @@ def is_valid_uuid(value: Annotated[str, Path()]):
     except ValueError:
         print("valuererrrro")
         raise HTTPException(
-            detail=f"Invalid ID :: => {value}", status_code=status.HTTP_406_NOT_ACCEPTABLE
+            detail=f"Invalid ID :: => {value}",
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
         )

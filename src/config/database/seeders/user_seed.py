@@ -1,5 +1,4 @@
 # src/config/database/seeders/seed.py
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.config.database.db_connection import engine

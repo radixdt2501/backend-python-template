@@ -13,6 +13,7 @@ load_dotenv(dotenv_path="src/config/env-files/.env.local")
 # Create a FastAPI instance
 app = FastAPI()
 
+
 def get_db_session() -> Session:
     """
     Dependency function to provide a database session for route operations.
@@ -26,12 +27,15 @@ def get_db_session() -> Session:
     finally:
         db.close()
 
+
 # Include user routes with a specified prefix and tags
 app.include_router(
     user_route.router, prefix=API_ENDPOINTS["USERS"]["BASE_URL"], tags=["Users"]
 )
 app.include_router(
-    project_route.router, prefix=API_ENDPOINTS["PROJECTS"]["BASE_URL"], tags=["Projects"]
+    project_route.router,
+    prefix=API_ENDPOINTS["PROJECTS"]["BASE_URL"],
+    tags=["Projects"],
 )
 
 # Additional FastAPI configurations (optional)
@@ -42,6 +46,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/")
+def hello():
+    return {"message": "Hello World"}
+
 
 @app.get("/health")
 def read_root(db: Session = Depends(get_db_session)) -> dict:

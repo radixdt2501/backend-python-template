@@ -1,21 +1,17 @@
 import logging
-from datetime import datetime, timezone
 import os
+from datetime import datetime, timezone
 from typing import Annotated, Dict
-from fastapi import File, HTTPException, Response, UploadFile, status
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError, NoResultFound
-from sqlalchemy import insert, or_, select, update
 
-from src.utils.types import (
-    RegisterUser,
-    BaseSuccessResponse,
-    LoginUser,
-    LoginResponse,
-)
-from src.models.user_model import UserModel
-from src.utils.index import generate_jwt_token, hash_password, verify_password
+from fastapi import File, HTTPException, Response, UploadFile, status
+from sqlalchemy import insert, or_, select, update
+from sqlalchemy.exc import IntegrityError, NoResultFound, SQLAlchemyError
+
 from src.config.database.db_connection import engine
+from src.models.user_model import UserModel
 from src.utils.exceptions import DatabaseException
+from src.utils.index import generate_jwt_token, hash_password, verify_password
+from src.utils.types import BaseSuccessResponse, LoginResponse, LoginUser, RegisterUser
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +47,7 @@ def create_account(payload: RegisterUser, response: Response) -> BaseSuccessResp
                 "message": "User Registered Successfully",
                 "id": str(result.inserted_primary_key[0]),
             }
-        except IntegrityError as error:
+        except IntegrityError:
             response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
             return {"success": False, "message": "User Already Exists!", "id": None}
         except SQLAlchemyError as error:
@@ -278,7 +274,7 @@ def update_user_with_image(
             "id": str(payload.get("id")),
         }
 
-    except IntegrityError as error:
+    except IntegrityError:
         response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
         return {
             "success": False,
@@ -286,6 +282,6 @@ def update_user_with_image(
             "id": None,
         }
 
-    except SQLAlchemyError as error:
+    except SQLAlchemyError:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"success": False, "message": "Failed to update user!", "id": None}

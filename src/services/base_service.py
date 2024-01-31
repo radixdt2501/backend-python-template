@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+
 class BaseService:
     """
     Base service class for interacting with the database.

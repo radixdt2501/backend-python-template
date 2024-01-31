@@ -1,13 +1,12 @@
-from fastapi import Response
-from sqlalchemy import insert, select
 from fastapi import Response, status
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError, NoResultFound
+from sqlalchemy import insert, select
+from sqlalchemy.exc import IntegrityError, NoResultFound, SQLAlchemyError
 
-from src.utils.types import CreateProject
 from src.config.database.db_connection import engine
-from src.utils.exceptions import DatabaseException
-from src.models.user_model import UserModel
 from src.models.project_model import ProjectModel
+from src.models.user_model import UserModel
+from src.utils.exceptions import DatabaseException
+from src.utils.types import CreateProject
 
 
 def create_project(payload: CreateProject, response: Response):
@@ -22,7 +21,7 @@ def create_project(payload: CreateProject, response: Response):
                 "message": "Project Created Successfully",
                 "id": str(result.inserted_primary_key[0]),
             }
-        except IntegrityError as error:
+        except IntegrityError:
             response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
             return {
                 "success": False,

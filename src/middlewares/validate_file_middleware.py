@@ -1,5 +1,7 @@
 from typing import Annotated
-from fastapi import UploadFile, File, HTTPException, status
+
+from fastapi import File, HTTPException, UploadFile, status
+
 from src.utils.constants import ALLOWED_IMAGES_TYPE, MAX_FILE_UPLOAD_SIZE
 
 

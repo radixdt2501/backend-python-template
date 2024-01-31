@@ -1,23 +1,15 @@
-from fastapi import (
-    APIRouter,
-    File,
-    Form,
-    Response,
-    Depends,
-    HTTPException,
-    UploadFile,
-)
 from typing import Annotated
 
-from src.utils.constants import API_ENDPOINTS
-from src.utils.types import CreateProject
-from src.utils.index import is_valid_uuid
+from fastapi import APIRouter, Depends, File, Response
+
+from src.middlewares.authentication_middleware import verify_auth_token
+from src.middlewares.validate_file_middleware import validate_file
 from src.services.project_service import (
     create_project,
     get_all_projects_with_pagination,
 )
-from src.middlewares.validate_file_middleware import validate_file
-from src.middlewares.authentication_middleware import verify_auth_token
+from src.utils.constants import API_ENDPOINTS
+from src.utils.types import CreateProject
 
 router = APIRouter(tags=["Projects"])
 

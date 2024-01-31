@@ -1,7 +1,8 @@
-from enum import Enum as PythonEnum
-from pydantic import BaseModel
-from typing import Optional, List
 from datetime import datetime
+from enum import Enum as PythonEnum
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 
 class RolesEnum(str, PythonEnum):
@@ -158,6 +159,7 @@ class GetAllUsers(BaseModel):
 
     success: bool
     data: List[UserInfoExtended]
+
 
 class CreateProject(BaseModel):
     name: str

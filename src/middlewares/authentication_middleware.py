@@ -1,12 +1,12 @@
 from typing import Annotated, Optional
-from sqlalchemy import select, and_
+
+from fastapi import Cookie, HTTPException, status
+from jwt import DecodeError, ExpiredSignatureError
+from sqlalchemy import and_, select
 from sqlalchemy.exc import NoResultFound
 
-from fastapi import HTTPException, status, Cookie
-from jwt import DecodeError, ExpiredSignatureError
-from src.models.user_model import UserModel
-
 from src.config.database.db_connection import engine
+from src.models.user_model import UserModel
 from src.utils.index import decode_jwt_token
 
 
@@ -50,7 +50,7 @@ def verify_auth_token(token: Annotated[str | None, Cookie()] = None) -> Optional
 
             if user_data:
                 user_dict = dict(zip(result.keys(), user_data))
-                user_dict["id"] = str(user_dict['id'])
+                user_dict["id"] = str(user_dict["id"])
                 return user_dict
             else:
                 # User not found in the database

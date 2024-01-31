@@ -1,10 +1,10 @@
-from sqlalchemy import Column, String, DateTime, text, ForeignKey, Index
-from sqlalchemy.sql import expression
-from sqlalchemy.orm import relationship
+from typing import Any
+
+from sqlalchemy import Column, DateTime, ForeignKey, Index, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles
-
-from typing import Any
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import expression
 
 from src.config.database.db_connection import Base
 

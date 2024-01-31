@@ -1,12 +1,12 @@
 import logging
+
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 from src.utils.index import get_required_env_variable
-
 
 # Load environment variables
 load_dotenv(dotenv_path="src/config/env-files/.env.local")
@@ -43,6 +43,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Create a Base class for declarative models
 Base = declarative_base()
+
 
 # Function to get a new session
 def get_db():

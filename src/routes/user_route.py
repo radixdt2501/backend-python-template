@@ -1,35 +1,28 @@
-from fastapi import (
-    APIRouter,
-    File,
-    Form,
-    Response,
-    Depends,
-    HTTPException,
-    UploadFile,
-)
 from typing import Annotated
 
-from src.utils.constants import API_ENDPOINTS
-from src.utils.types import (
-    GetAllUsers,
-    RegisterUser,
-    BaseSuccessResponse,
-    LoginUser,
-    LoginResponse,
-    RolesEnum,
-    UserInfoExtended,
-    WhoAMIResponse,
-)
-from src.utils.index import is_valid_uuid
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile
+
+from src.middlewares.authentication_middleware import verify_auth_token
+from src.middlewares.validate_file_middleware import validate_file
 from src.services.user_service import (
-    create_account,
     authenticate_user,
+    create_account,
     get_all_users_with_pagination,
     get_user_info_by_id,
     update_user_with_image,
 )
-from src.middlewares.validate_file_middleware import validate_file
-from src.middlewares.authentication_middleware import verify_auth_token
+from src.utils.constants import API_ENDPOINTS
+from src.utils.index import is_valid_uuid
+from src.utils.types import (
+    BaseSuccessResponse,
+    GetAllUsers,
+    LoginResponse,
+    LoginUser,
+    RegisterUser,
+    RolesEnum,
+    UserInfoExtended,
+    WhoAMIResponse,
+)
 
 router = APIRouter(tags=["Users"])
 
