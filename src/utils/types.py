@@ -158,3 +158,7 @@ class GetAllUsers(BaseModel):
 
     success: bool
     data: List[UserInfoExtended]
+
+class CreateProject(BaseModel):
+    name: str
+    owner_id: str

@@ -9,8 +9,10 @@ API_ENDPOINTS = {
         "USER_BY_ID": "/{user_id}",
         "GET_ALL_USERS": "/",
     },
-    "PROJECT": {
+    "PROJECTS": {
         "BASE_URL": "/projects",
+        "CREATE_PROJECT": "/",
+        "GET_ALL_PROJECTS": "/",
     },
 }
 ALLOWED_IMAGES_TYPE = ["image/jpeg", "image/jpg", "image/png"]

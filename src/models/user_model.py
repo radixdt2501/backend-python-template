@@ -1,8 +1,8 @@
 from sqlalchemy import Column, String, Boolean, DateTime, text, Enum, Index
 from sqlalchemy.sql import expression
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.sql import expression
 
 from typing import Any
 
@@ -27,6 +27,9 @@ class UserModel(Base):
 
     __tablename__ = "users"
 
+    class Config:
+        orm_mode = True
+
     id = Column(
         UUID(as_uuid=True),
         nullable=False,
@@ -36,8 +39,12 @@ class UserModel(Base):
     )
     first_name = Column(String, index=True, nullable=False, doc="User's first name")
     last_name = Column(String, index=True, nullable=True, doc="User's last name")
-    username = Column(String, unique=True, index=True, nullable=False, doc="Unique username")
-    email = Column(String, unique=True, index=True, nullable=False, doc="User's email address")
+    username = Column(
+        String, unique=True, index=True, nullable=False, doc="Unique username"
+    )
+    email = Column(
+        String, unique=True, index=True, nullable=False, doc="User's email address"
+    )
     password = Column(String, nullable=False, doc="User's hashed password")
     profile_picture = Column(String, nullable=True, doc="User's Profile Picture URL")
     role = Column(
@@ -47,6 +54,7 @@ class UserModel(Base):
         nullable=False,
         doc="User's role (enum)",
     )
+    projects = relationship("ProjectModel")
     is_verified = Column(
         Boolean,
         default=False,
@@ -77,5 +85,4 @@ class UserModel(Base):
     )
 
 
-# Updated index name for better clarity
 users_name_index = Index("users_name_index", UserModel.first_name, UserModel.last_name)

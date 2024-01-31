@@ -10,7 +10,8 @@ load_dotenv(dotenv_path="src/config/env-files/.env.local")
 
 from src.utils.index import get_required_env_variable
 from src.config.database.db_connection import Base
-from src.models.user_model import UserModel
+from src.models.user_model import *
+from src.models.project_model import *
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

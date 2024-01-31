@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
 from src.config.database.db_connection import get_db
-from src.routes import user_route
+from src.routes import user_route, project_route
 from utils.constants import API_ENDPOINTS
 
 # Load environment variables from the specified file
@@ -29,6 +29,9 @@ def get_db_session() -> Session:
 # Include user routes with a specified prefix and tags
 app.include_router(
     user_route.router, prefix=API_ENDPOINTS["USERS"]["BASE_URL"], tags=["Users"]
+)
+app.include_router(
+    project_route.router, prefix=API_ENDPOINTS["PROJECTS"]["BASE_URL"], tags=["Projects"]
 )
 
 # Additional FastAPI configurations (optional)

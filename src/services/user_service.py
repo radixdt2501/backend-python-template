@@ -129,9 +129,10 @@ def authenticate_user(payload: LoginUser, response: Response) -> LoginResponse:
                 }
 
     except (SQLAlchemyError, NoResultFound) as error:
-        response.status_code = status.HTTP_400_BAD_REQUEST
-        logger.exception("Error during user authentication")
-        raise HTTPException(detail="Error during user authentication") from error
+        raise HTTPException(
+            detail=f"Error during user authentication{error}",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        ) from error
 
 
 def get_user_info_by_id(user_id: str, response: Response):
