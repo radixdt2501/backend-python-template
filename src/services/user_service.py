@@ -36,7 +36,7 @@ def create_account(payload: RegisterUser, response: Response) -> BaseSuccessResp
     stmt = insert(UserModel).values(
         first_name=payload.firstName,
         last_name=payload.lastName,
-        username=payload.username,
+        username=payload.username.lower(),
         email=payload.email.lower(),
         password=hashed_password,
         role=payload.role,
@@ -77,7 +77,7 @@ def authenticate_user(payload: LoginUser, response: Response) -> LoginResponse:
             .where(
                 or_(
                     UserModel.email == payload.identifier.lower(),
-                    UserModel.username == payload.identifier,
+                    UserModel.username == payload.identifier.lower(),
                 )
             )
             .limit(1)
@@ -200,11 +200,10 @@ def get_all_users_with_pagination(
     """
     try:
         skip = (page - 1) * page_size
-        query = select(UserModel).offset(skip).limit(page_size)
+        query = select(UserModel).where(UserModel.is_deleted == False).offset(skip).limit(page_size)
 
         with engine.begin() as conn:
             result = conn.execute(query)
-            # users_list = [dict((key, value) for key, value in zip(result.keys(), user) if key != "password") for user in result.fetchall()]
             users_list = [
                 dict(
                     (key, str(value)) if key == "id" else (key, value)

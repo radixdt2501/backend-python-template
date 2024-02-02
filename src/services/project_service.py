@@ -4,15 +4,20 @@ from sqlalchemy import insert, select
 from sqlalchemy.exc import IntegrityError, NoResultFound, SQLAlchemyError
 
 from src.config.database.db_connection import engine
-from src.models.project_model import ProjectModel
-
-from src.models.project_members_model import ProjectMembersModel
 from src.utils.exceptions import DatabaseException
+
+from src.models.project_model import ProjectModel
+from src.models.project_members_model import ProjectMembersModel
+from src.models.user_model import UserModel
+
+from src.schemas.users import UserInfo
 from src.schemas.projects import CreateProjectDetails, CreateProjectMembers
 
 
-def create_project(payload: CreateProjectDetails, response: Response):
-    stmt = insert(ProjectModel).values(**payload.model_dump())
+def create_project(payload: CreateProjectDetails, user: UserInfo, response: Response):
+    stmt = insert(ProjectModel).values(
+        project_owner_id=user["id"], **payload.model_dump()
+    )
     with engine.begin() as conn:
         try:
             result = conn.execute(stmt)
@@ -64,7 +69,7 @@ def create_project_members(
 
 
 def get_all_projects_with_pagination(
-    response: Response, page: int = 1, page_size: int = 10
+    response: Response, user: UserInfo, page: int = 1, page_size: int = 10
 ):
     """
     Retrieve all projects with pagination.
@@ -88,8 +93,13 @@ def get_all_projects_with_pagination(
                 ProjectModel,
                 ProjectMembersModel.id.label("project_members_id"),
                 ProjectMembersModel.email_ids.label("project_members_email_ids"),
+                UserModel.id.label("project_owner_id"),
+                UserModel.first_name.label("owner_first_name"),
+                UserModel.last_name.label("owner_last_name"),
             )
             .join(ProjectMembersModel)
+            .join(UserModel)
+            .where(ProjectModel.project_owner_id == user["id"])
             .offset(skip)
             .limit(page_size)
         )

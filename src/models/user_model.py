@@ -4,10 +4,10 @@ from sqlalchemy import Boolean, Column, DateTime, Enum, Index, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql import expression
+from sqlalchemy.orm import relationship
 
 from src.config.database.db_connection import Base
 from src.schemas.users import UserRoleEnum
-
 
 class Utcnow(expression.FunctionElement):
     type = DateTime()
@@ -69,6 +69,7 @@ class UserModel(Base):
         nullable=False,
         server_default=Utcnow(),
     )
+    projects = relationship("ProjectModel", back_populates="project_owner")
 
 
 users_name_index = Index("users_name_index", UserModel.first_name, UserModel.last_name)

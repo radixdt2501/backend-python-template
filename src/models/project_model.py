@@ -1,6 +1,6 @@
 from typing import Any, List
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Enum, Index, String, text
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Index, String, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql import expression
@@ -8,7 +8,7 @@ from sqlalchemy.orm import mapped_column, relationship
 
 from src.schemas.projects import ProjectStatusEnum
 from src.config.database.db_connection import Base
-
+from src.models.user_model import UserModel
 
 class Utcnow(expression.FunctionElement):
     type = DateTime()
@@ -65,6 +65,8 @@ class ProjectModel(Base):
         server_default=Utcnow(),
     )
     project_members = relationship("ProjectMembersModel", back_populates="project")
+    project_owner_id = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    project_owner = relationship("UserModel", back_populates="projects")
 
 
 project_index = Index("project_index", ProjectModel.name)

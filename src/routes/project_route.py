@@ -23,7 +23,9 @@ ValidateFileMiddleWare = Annotated[File, Depends(validate_file)]
     description="Create Project Details API",
     # response_model=LoginRespose,
 )
-def create_project_details(body: CreateProjectDetails, response: Response):
+def create_project_details(
+    user: AuthMiddleWare, body: CreateProjectDetails, response: Response
+):
     """
     Endpoint for create new project.
 
@@ -38,7 +40,7 @@ def create_project_details(body: CreateProjectDetails, response: Response):
     - SQLAlchemyError: If there is an error in the database operation.
     - Exception: For unexpected errors during create new project.
     """
-    return create_project(body, response)
+    return create_project(body, user, response)
 
 
 @router.post(
@@ -46,7 +48,7 @@ def create_project_details(body: CreateProjectDetails, response: Response):
     description="Add Project Members in Project API",
 )
 def create_project_members_by_project_id(
-    project_id: str, body: CreateProjectMembers, response: Response
+    _: AuthMiddleWare, project_id: str, body: CreateProjectMembers, response: Response
 ):
     return create_project_members(project_id, body, response)
 
@@ -56,7 +58,7 @@ def create_project_members_by_project_id(
     description="Get all Projects API",
 )
 def get_all_projects(
-    _: AuthMiddleWare,
+    user: AuthMiddleWare,
     response: Response,
     page: int = 1,
     page_size: int = 10,
@@ -75,4 +77,4 @@ def get_all_projects(
     - SQLAlchemyError: If there is an error in the database operation.
     - Exception: For unexpected errors during create new project.
     """
-    return get_all_projects_with_pagination(response, page, page_size)
+    return get_all_projects_with_pagination(response, user, page, page_size)
