@@ -10,8 +10,8 @@ from src.models.project_model import ProjectModel
 from src.models.project_members_model import ProjectMembersModel
 from src.models.user_model import UserModel
 
-from src.schemas.users import UserInfo
-from src.schemas.projects import CreateProjectDetails, CreateProjectMembers
+from schemas.users_schema import UserInfo
+from schemas.projects_schema import CreateProjectDetails, CreateProjectMembers
 
 
 def create_project(payload: CreateProjectDetails, user: UserInfo, response: Response):

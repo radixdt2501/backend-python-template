@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 
 from src.config.database.db_connection import engine
 from src.services.user_service import create_account
-from src.schemas.users import RegisterUser
+from schemas.users_schema import RegisterUser
 
 
 def seed_users():

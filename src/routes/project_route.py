@@ -4,13 +4,21 @@ from fastapi import APIRouter, Depends, File, Response
 
 from src.middlewares.authentication_middleware import verify_auth_token
 from src.middlewares.validate_file_middleware import validate_file
+
 from src.services.project_service import (
     create_project,
     create_project_members,
     get_all_projects_with_pagination,
 )
 from src.utils.constants import API_ENDPOINTS
-from src.schemas.projects import CreateProjectDetails, CreateProjectMembers
+
+from src.schemas.index import BaseSuccessResponse
+from schemas.projects_schema import (
+    CreateProjectDetails,
+    CreateProjectMembers,
+    GetAllProjectsResponse,
+)
+from utils.index import is_valid_uuid
 
 router = APIRouter(tags=["Projects"])
 
@@ -21,11 +29,11 @@ ValidateFileMiddleWare = Annotated[File, Depends(validate_file)]
 @router.post(
     API_ENDPOINTS["PROJECTS"]["DETAILS"],
     description="Create Project Details API",
-    # response_model=LoginRespose,
+    response_model=BaseSuccessResponse,
 )
 def create_project_details(
     user: AuthMiddleWare, body: CreateProjectDetails, response: Response
-):
+) -> BaseSuccessResponse:
     """
     Endpoint for create new project.
 
@@ -46,23 +54,26 @@ def create_project_details(
 @router.post(
     API_ENDPOINTS["PROJECTS"]["MEMBERS"],
     description="Add Project Members in Project API",
+    response_model=BaseSuccessResponse,
 )
 def create_project_members_by_project_id(
     _: AuthMiddleWare, project_id: str, body: CreateProjectMembers, response: Response
-):
+) -> BaseSuccessResponse:
+    is_valid_uuid(project_id)
     return create_project_members(project_id, body, response)
 
 
 @router.get(
     API_ENDPOINTS["PROJECTS"]["GET_ALL_PROJECTS"],
     description="Get all Projects API",
+    response_model=GetAllProjectsResponse,
 )
 def get_all_projects(
     user: AuthMiddleWare,
     response: Response,
     page: int = 1,
     page_size: int = 10,
-):
+) -> GetAllProjectsResponse:
     """
     Endpoint for create new project.
 

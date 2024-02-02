@@ -6,7 +6,7 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql import expression
 from sqlalchemy.orm import mapped_column, relationship
 
-from src.schemas.projects import ProjectStatusEnum
+from schemas.projects_schema import ProjectStatusEnum
 from src.config.database.db_connection import Base
 from src.models.user_model import UserModel
 

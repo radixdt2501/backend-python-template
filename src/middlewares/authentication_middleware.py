@@ -5,7 +5,7 @@ from jwt import DecodeError, ExpiredSignatureError
 from sqlalchemy import and_, select
 from sqlalchemy.exc import NoResultFound
 
-from src.schemas.users import UserInfo
+from schemas.users_schema import UserInfo
 from src.config.database.db_connection import engine
 from src.models.user_model import UserModel
 from src.utils.index import decode_jwt_token

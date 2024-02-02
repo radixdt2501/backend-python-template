@@ -11,7 +11,7 @@ from src.config.database.db_connection import engine
 from src.models.user_model import UserModel
 from src.utils.exceptions import DatabaseException
 from src.utils.index import generate_jwt_token, hash_password, verify_password
-from src.schemas.users import LoginResponse, LoginUser, RegisterUser
+from schemas.users_schema import LoginResponse, LoginUser, RegisterUser
 from src.schemas.index import BaseSuccessResponse
 
 
