@@ -1,6 +1,6 @@
 from fastapi import Response, status
 from typing import Dict, List
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, and_
 from sqlalchemy.exc import IntegrityError, NoResultFound, SQLAlchemyError
 
 from src.config.database.db_connection import engine
@@ -40,7 +40,7 @@ def create_project(payload: CreateProjectDetails, user: UserInfo, response: Resp
             ) from error
 
 
-def create_project_members(
+def add_project_members(
     project_id: str, body: CreateProjectMembers, response: Response
 ):
     stmt = insert(ProjectMembersModel).values(
@@ -119,3 +119,49 @@ def get_all_projects_with_pagination(
         raise SQLAlchemyError(
             f"Error during project retrieval with pagination : {error}"
         ) from error
+
+
+def fetch_project_member_by_project_id(
+    project_id: str,
+    user: UserInfo,
+    response: Response,
+):
+    try:
+        query = (
+            select(
+                ProjectMembersModel,
+                ProjectModel.name,
+                ProjectModel.status,
+                ProjectModel.project_owner_id,
+            )
+            .join(ProjectModel)
+            .join(UserModel)
+            .where(
+                and_(
+                    ProjectMembersModel.project_id == project_id,
+                    ProjectModel.project_owner_id == user["id"],
+                )
+            )
+        )
+
+        with engine.begin() as conn:
+            result = conn.execute(query)
+            project_members_list = [
+                dict(zip(result.keys(), row)) for row in result.fetchall()
+            ]
+
+            return {"success": True, "data": project_members_list}
+
+    except NoResultFound:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        raise NoResultFound("No project members found") from None
+
+    except SQLAlchemyError as error:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        raise SQLAlchemyError(
+            f"Error during project members retrieval : {error}"
+        ) from error
+
+
+def create_project_documents_by_project_id():
+    return None

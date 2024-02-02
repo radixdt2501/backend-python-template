@@ -13,6 +13,7 @@ API_ENDPOINTS = {
         "BASE_URL": "/projects",
         "DETAILS": "/details",
         "MEMBERS": "/{project_id}/members",
+        "DOCUMENTS": "/{project_id}/documents",
         "GET_ALL_PROJECTS": "/",
     },
 }

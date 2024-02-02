@@ -101,7 +101,7 @@ def who_am_i(userInfo: AuthMiddleWare) -> WhoAMIResponse:
 
 @router.get(
     API_ENDPOINTS["USERS"]["USER_BY_ID"],
-    description="Get User By ID",
+    description="Fetch User Info By ID",
     response_model=WhoAMIResponse,
 )
 def get_user_by_id(
@@ -126,7 +126,7 @@ def get_user_by_id(
 
 @router.get(
     API_ENDPOINTS["USERS"]["GET_ALL_USERS"],
-    description="Get All Users",
+    description="Fetch All Users",
     response_model=GetAllUsers,
 )
 def get_all_users(
