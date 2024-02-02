@@ -2,10 +2,10 @@ from datetime import datetime
 from enum import Enum as PythonEnum
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
-class RolesEnum(str, PythonEnum):
+class UserRoleEnum(str, PythonEnum):
     """
     Enumeration for user roles.
 
@@ -36,9 +36,9 @@ class RegisterUser(BaseModel):
     firstName: str
     lastName: Optional[str] = None
     username: str
-    email: str
+    email: EmailStr
     password: str
-    role: Optional[RolesEnum] = RolesEnum.USER
+    role: Optional[UserRoleEnum] = UserRoleEnum.USER
 
 
 class LoginUser(BaseModel):
@@ -69,21 +69,6 @@ class LoginResponse(BaseModel):
     token: Optional[str]
 
 
-class BaseSuccessResponse(BaseModel):
-    """
-    Model for the response after a user registration.
-
-    Attributes:
-    - message (str): Response message.
-    - success (bool): Indicates whether the registration was successful.
-    - id (Optional[str]): User ID (optional).
-    """
-
-    message: str
-    success: bool
-    id: Optional[str]
-
-
 class UserInfo(BaseModel):
     """
     Model for basic user information.
@@ -98,11 +83,11 @@ class UserInfo(BaseModel):
     """
 
     id: str
-    email: str
+    email: EmailStr
     first_name: str
     last_name: str
     username: str
-    role: RolesEnum
+    role: UserRoleEnum
 
 
 class WhoAMIResponse(BaseModel):
@@ -139,8 +124,8 @@ class UserInfoExtended(BaseModel):
     first_name: str
     last_name: Optional[str] = None
     username: str
-    email: str
-    role: RolesEnum
+    email: EmailStr
+    role: UserRoleEnum
     profile_picture_path: Optional[str] = None
     is_verified: bool
     is_deleted: bool
@@ -159,8 +144,3 @@ class GetAllUsers(BaseModel):
 
     success: bool
     data: List[UserInfoExtended]
-
-
-class CreateProject(BaseModel):
-    name: str
-    owner_id: str

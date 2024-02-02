@@ -11,7 +11,9 @@ from src.config.database.db_connection import engine
 from src.models.user_model import UserModel
 from src.utils.exceptions import DatabaseException
 from src.utils.index import generate_jwt_token, hash_password, verify_password
-from src.utils.types import BaseSuccessResponse, LoginResponse, LoginUser, RegisterUser
+from src.schemas.users import LoginResponse, LoginUser, RegisterUser
+from src.schemas.index import BaseSuccessResponse
+
 
 logger = logging.getLogger(__name__)
 
@@ -86,10 +88,12 @@ def authenticate_user(payload: LoginUser, response: Response) -> LoginResponse:
             user_data = result.fetchone()
 
             if user_data is None:
-                raise HTTPException(
-                    detail="This account is not registered with us!",
-                    status_code=status.HTTP_404_NOT_FOUND,
-                )
+                response.status_code = status.HTTP_400_BAD_REQUEST
+                return {
+                    "success": False,
+                    "message": "This account is not registered with us!",
+                    "token": None,
+                }
 
             user_dict = dict(zip(result.keys(), user_data))
             is_password_verified = verify_password(
@@ -120,7 +124,7 @@ def authenticate_user(payload: LoginUser, response: Response) -> LoginResponse:
             else:
                 return {
                     "success": False,
-                    "message": "Username or password is incorrect!",
+                    "message": "Email/Username or Password is incorrect!",
                     "token": None,
                 }
 

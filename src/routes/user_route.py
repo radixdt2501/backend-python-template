@@ -13,16 +13,16 @@ from src.services.user_service import (
 )
 from src.utils.constants import API_ENDPOINTS
 from src.utils.index import is_valid_uuid
-from src.utils.types import (
-    BaseSuccessResponse,
+from src.schemas.users import (
     GetAllUsers,
     LoginResponse,
     LoginUser,
     RegisterUser,
-    RolesEnum,
+    UserRoleEnum,
     UserInfoExtended,
     WhoAMIResponse,
 )
+from src.schemas.index import BaseSuccessResponse
 
 router = APIRouter(tags=["Users"])
 
@@ -169,7 +169,7 @@ async def update_user(
     last_name: Annotated[str, Form()] = None,
     username: Annotated[str, Form()] = None,
     email: Annotated[str, Form()] = None,
-    role: Annotated[RolesEnum, Form()] = None,
+    role: Annotated[UserRoleEnum, Form()] = None,
     is_verified: Annotated[bool, Form()] = False,
     is_deleted: Annotated[bool, Form()] = False,
 ) -> BaseSuccessResponse:

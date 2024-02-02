@@ -6,10 +6,11 @@ from src.middlewares.authentication_middleware import verify_auth_token
 from src.middlewares.validate_file_middleware import validate_file
 from src.services.project_service import (
     create_project,
+    create_project_members,
     get_all_projects_with_pagination,
 )
 from src.utils.constants import API_ENDPOINTS
-from src.utils.types import CreateProject
+from src.schemas.projects import CreateProjectDetails, CreateProjectMembers
 
 router = APIRouter(tags=["Projects"])
 
@@ -18,11 +19,11 @@ ValidateFileMiddleWare = Annotated[File, Depends(validate_file)]
 
 
 @router.post(
-    API_ENDPOINTS["PROJECTS"]["CREATE_PROJECT"],
-    description="Create Project API",
+    API_ENDPOINTS["PROJECTS"]["DETAILS"],
+    description="Create Project Details API",
     # response_model=LoginRespose,
 )
-def add_project(body: CreateProject, response: Response):
+def create_project_details(body: CreateProjectDetails, response: Response):
     """
     Endpoint for create new project.
 
@@ -40,12 +41,21 @@ def add_project(body: CreateProject, response: Response):
     return create_project(body, response)
 
 
+@router.post(
+    API_ENDPOINTS["PROJECTS"]["MEMBERS"],
+    description="Add Project Members in Project API",
+)
+def create_project_members_by_project_id(
+    project_id: str, body: CreateProjectMembers, response: Response
+):
+    return create_project_members(project_id, body, response)
+
+
 @router.get(
     API_ENDPOINTS["PROJECTS"]["GET_ALL_PROJECTS"],
     description="Get all Projects API",
-    # response_model=LoginRespose,
 )
-def get_all_users(
+def get_all_projects(
     _: AuthMiddleWare,
     response: Response,
     page: int = 1,

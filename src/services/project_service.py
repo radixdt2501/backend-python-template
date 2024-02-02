@@ -1,18 +1,18 @@
 from fastapi import Response, status
+from typing import Dict, List
 from sqlalchemy import insert, select
 from sqlalchemy.exc import IntegrityError, NoResultFound, SQLAlchemyError
 
 from src.config.database.db_connection import engine
 from src.models.project_model import ProjectModel
-from src.models.user_model import UserModel
+
+from src.models.project_members_model import ProjectMembersModel
 from src.utils.exceptions import DatabaseException
-from src.utils.types import CreateProject
+from src.schemas.projects import CreateProjectDetails, CreateProjectMembers
 
 
-def create_project(payload: CreateProject, response: Response):
-    stmt = insert(ProjectModel).values(
-        name=payload.name, project_owner_id=payload.owner_id
-    )
+def create_project(payload: CreateProjectDetails, response: Response):
+    stmt = insert(ProjectModel).values(**payload.model_dump())
     with engine.begin() as conn:
         try:
             result = conn.execute(stmt)
@@ -25,13 +25,41 @@ def create_project(payload: CreateProject, response: Response):
             response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
             return {
                 "success": False,
-                "message": "Something went wrong while creating project!",
+                "message": "Something went wrong while creating project details!",
                 "id": None,
             }
         except SQLAlchemyError as error:
             response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
             raise DatabaseException(
-                f"Something went wrong in DB while creating project! {error}"
+                f"Something went wrong in DB while creating project details! {error}"
+            ) from error
+
+
+def create_project_members(
+    project_id: str, body: CreateProjectMembers, response: Response
+):
+    stmt = insert(ProjectMembersModel).values(
+        project_id=project_id, email_ids=body.email_ids
+    )
+    with engine.begin() as conn:
+        try:
+            result = conn.execute(stmt)
+            return {
+                "success": True,
+                "message": "Project Members Created Successfully",
+                "id": str(result.inserted_primary_key[0]),
+            }
+        except IntegrityError:
+            response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            return {
+                "success": False,
+                "message": "Something went wrong while creating project members!",
+                "id": None,
+            }
+        except SQLAlchemyError as error:
+            response.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            raise DatabaseException(
+                f"Something went wrong in DB while creating project members! {error}"
             ) from error
 
 
@@ -58,12 +86,10 @@ def get_all_projects_with_pagination(
         query = (
             select(
                 ProjectModel,
-                UserModel.email,
-                UserModel.username,
-                UserModel.first_name,
-                UserModel.last_name,
-                (UserModel.id).label("userId"),
+                ProjectMembersModel.id.label("project_members_id"),
+                ProjectMembersModel.email_ids.label("project_members_email_ids"),
             )
+            .join(ProjectMembersModel)
             .offset(skip)
             .limit(page_size)
         )

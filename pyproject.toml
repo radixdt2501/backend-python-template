@@ -19,7 +19,6 @@ typing = "3.7.4.3"
 bcrypt = "^4.1.2"
 pyjwt = "^2.8.0"
 python-multipart = "^0.0.6"
-sqlmodel = "^0.0.14"
 pydantic = "^2.6.0"
 
 [tool.poetry.group.dev.dependencies]

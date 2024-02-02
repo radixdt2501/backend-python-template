@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 
 from src.utils.index import get_required_env_variable
 
@@ -27,6 +27,7 @@ DATABASE_URL = f"postgresql://{POSTGRES_USERNAME}:{POSTGRES_PASSWORD}@{POSTGRES_
 
 # Create the SQLAlchemy engine
 engine = create_engine(DATABASE_URL)
+session = Session(engine)
 
 # Log database connection status
 try:
@@ -43,7 +44,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Create a Base class for declarative models
 Base = declarative_base()
-
 
 # Function to get a new session
 def get_db():
