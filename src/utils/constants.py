@@ -1,6 +1,8 @@
 # Define API endpoints using a nested dictionary structure
 API_ENDPOINTS = {
     "BASE_URL": "/api/v1",
+    "HEALTH": "/health",
+    "FILES": "/files",
     "USERS": {
         "BASE_URL": "/users",
         "REGISTER": "/register",
@@ -19,6 +21,7 @@ API_ENDPOINTS = {
 }
 ALLOWED_IMAGES_TYPE = ["image/jpeg", "image/jpg", "image/png"]
 MAX_FILE_UPLOAD_SIZE = 2097152
+UPLOADS_FOLDER_PATH = "uploads"
 
 # Docstring for API_ENDPOINTS
 """

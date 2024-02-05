@@ -12,15 +12,15 @@ from src.services.project_service import (
     create_project_documents_by_project_id,
     get_all_projects_with_pagination,
 )
-from src.utils.constants import API_ENDPOINTS
 
 from src.schemas.index import BaseSuccessResponse
-from schemas.projects_schema import (
+from src.schemas.projects_schema import (
     CreateProjectDetails,
     CreateProjectMembers,
     GetAllProjectsResponse,
 )
-from utils.index import is_valid_uuid
+from src.utils.constants import API_ENDPOINTS
+from src.utils.index import is_valid_uuid
 
 router = APIRouter(tags=["Projects"])
 
@@ -114,15 +114,13 @@ def fetch_project_members(
 @router.post(
     API_ENDPOINTS["PROJECTS"]["DOCUMENTS"],
     description="Add Project Documents in Project API",
-    # response_model=GetAllProjectsResponse,
 )
 def create_project_documents(
     __: AuthMiddleWare,
     project_id: str,
-    response: Response,
-    file: Annotated[UploadFile, File()] = None,
+    files: Annotated[
+        list[UploadFile], File(description="Multiple files as UploadFile")
+    ],
 ):
     is_valid_uuid(project_id)
-    documents = f"/uploads/{file.filename}" if file else None
-
-    return create_project_documents_by_project_id()
+    return create_project_documents_by_project_id(project_id, files)

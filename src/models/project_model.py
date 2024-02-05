@@ -6,7 +6,7 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.sql import expression
 from sqlalchemy.orm import mapped_column, relationship
 
-from schemas.projects_schema import ProjectStatusEnum
+from src.schemas.projects_schema import ProjectStatusEnum
 from src.config.database.db_connection import Base
 from src.models.user_model import UserModel
 
@@ -65,8 +65,10 @@ class ProjectModel(Base):
         server_default=Utcnow(),
     )
     project_members = relationship("ProjectMembersModel", back_populates="project")
-    project_owner_id = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    project_documents = relationship("ProjectDocumentsModel", back_populates="project")
     project_owner = relationship("UserModel", back_populates="projects")
+    
+    project_owner_id = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
 
 
 project_index = Index("project_index", ProjectModel.name)

@@ -124,12 +124,10 @@ def is_valid_uuid(value: Annotated[str, Path()]):
     Returns:
     - bool: True if the value is a valid UUID, False otherwise.
     """
-    print("value", value)
     try:
         uuid.UUID(str(value), version=4)
         return True
     except ValueError:
-        print("valuererrrro")
         raise HTTPException(
             detail=f"Invalid ID :: => {value}",
             status_code=status.HTTP_406_NOT_ACCEPTABLE,

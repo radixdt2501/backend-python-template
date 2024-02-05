@@ -13,7 +13,7 @@ from src.services.user_service import (
 )
 from src.utils.constants import API_ENDPOINTS
 from src.utils.index import is_valid_uuid
-from schemas.users_schema import (
+from src.schemas.users_schema import (
     GetAllUsers,
     LoginResponse,
     LoginUser,

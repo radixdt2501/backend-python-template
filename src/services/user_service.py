@@ -13,6 +13,7 @@ from src.utils.exceptions import DatabaseException
 from src.utils.index import generate_jwt_token, hash_password, verify_password
 from schemas.users_schema import LoginResponse, LoginUser, RegisterUser
 from src.schemas.index import BaseSuccessResponse
+from src.utils.constants import UPLOADS_FOLDER_PATH
 
 
 logger = logging.getLogger(__name__)
@@ -262,12 +263,9 @@ def update_user_with_image(
         )
         with engine.begin() as conn:
             conn.execute(stmt)
-            folder_path = "uploads"
-            if not os.path.exists(folder_path):
-                os.makedirs(folder_path)
 
             if file:
-                file_path = os.path.join(folder_path, file.filename)
+                file_path = os.path.join(UPLOADS_FOLDER_PATH, file.filename)
                 with open(file_path, "wb") as local_file:
                     local_file.write(file.file.read())
 

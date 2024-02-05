@@ -1,17 +1,22 @@
-from fastapi import Response, status
-from typing import Dict, List
-from sqlalchemy import insert, select, and_
+import os
+from fastapi import File, Response, UploadFile, status, HTTPException
+from typing import Annotated
+from sqlalchemy import func, insert, select, and_
 from sqlalchemy.exc import IntegrityError, NoResultFound, SQLAlchemyError
+from datetime import datetime
 
 from src.config.database.db_connection import engine
-from src.utils.exceptions import DatabaseException
 
 from src.models.project_model import ProjectModel
 from src.models.project_members_model import ProjectMembersModel
+from src.models.project_documents_model import ProjectDocumentsModel
 from src.models.user_model import UserModel
 
-from schemas.users_schema import UserInfo
-from schemas.projects_schema import CreateProjectDetails, CreateProjectMembers
+from src.schemas.users_schema import UserInfo
+from src.schemas.projects_schema import CreateProjectDetails, CreateProjectMembers
+
+from src.utils.constants import UPLOADS_FOLDER_PATH
+from src.utils.exceptions import DatabaseException
 
 
 def create_project(payload: CreateProjectDetails, user: UserInfo, response: Response):
@@ -96,10 +101,31 @@ def get_all_projects_with_pagination(
                 UserModel.id.label("project_owner_id"),
                 UserModel.first_name.label("owner_first_name"),
                 UserModel.last_name.label("owner_last_name"),
+                func.array_agg(ProjectDocumentsModel.document_path).label(
+                    "documents_path"
+                ),
             )
-            .join(ProjectMembersModel)
-            .join(UserModel)
+            .join(
+                ProjectMembersModel,
+                ProjectMembersModel.project_id == ProjectModel.id,
+                isouter=True,
+            )
+            .join(
+                ProjectDocumentsModel,
+                ProjectDocumentsModel.project_id == ProjectModel.id,
+            )
+            .join(UserModel, ProjectModel.project_owner_id == UserModel.id)
             .where(ProjectModel.project_owner_id == user["id"])
+            .group_by(
+                ProjectModel.id,
+                ProjectModel.name,
+                ProjectModel.project_owner_id,
+                ProjectMembersModel.id,
+                UserModel.id,
+                UserModel.first_name,
+                UserModel.last_name,
+            )
+            .distinct()
             .offset(skip)
             .limit(page_size)
         )
@@ -163,5 +189,57 @@ def fetch_project_member_by_project_id(
         ) from error
 
 
-def create_project_documents_by_project_id():
-    return None
+def create_project_documents_by_project_id(
+    project_id: str,
+    files: Annotated[
+        list[UploadFile], File(description="Multiple files as UploadFile")
+    ] = None,
+):
+    try:
+        project_document_ids = []
+
+        project_id_exists_stmt = select(ProjectModel.id).where(
+            ProjectModel.id == project_id
+        )
+
+        with engine.begin() as conn:
+            project_result = conn.execute(project_id_exists_stmt)
+
+        if project_result.fetchone() is None:
+            raise HTTPException(
+                detail="Invalid Project ID!",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+        for file in files:
+            timestamp = datetime.now().strftime("%Y-%m-%dT%H:%MZ")
+            file_path = f"{timestamp}_{file.filename.replace(' ', '-').lower()}"
+
+            document_path = f"{UPLOADS_FOLDER_PATH}/{file_path}"
+
+            with engine.begin() as conn:
+                stmt = insert(ProjectDocumentsModel).values(
+                    project_id=project_id, document_path=document_path
+                )
+                result = conn.execute(stmt)
+
+                file_upload_path = os.path.join(UPLOADS_FOLDER_PATH, file_path)
+                with open(file_upload_path, "wb") as local_file:
+                    local_file.write(file.file.read())
+                project_document_ids.append(str(result.inserted_primary_key[0]))
+
+        return {
+            "success": True,
+            "message": "Project Documents Uploaded Successfully",
+            "id": project_document_ids,
+        }
+    except IntegrityError as error:
+        raise HTTPException(
+            detail=f"Something went wrong while uploading project documents! {error}",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+    except SQLAlchemyError as error:
+        raise HTTPException(
+            detail=f"Something went wrong in DB while uploading project documents! {error}",
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )

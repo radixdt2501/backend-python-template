@@ -51,6 +51,7 @@ class ProjectInfoExtended(BaseModel):
     project_members_email_ids: List[str]
     owner_first_name: str
     owner_last_name: str
+    documents_path: list[str]
 
 
 class GetAllProjectsResponse(BaseModel):

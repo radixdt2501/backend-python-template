@@ -7,7 +7,7 @@ from sqlalchemy.sql import expression
 from sqlalchemy.orm import relationship
 
 from src.config.database.db_connection import Base
-from schemas.users_schema import UserRoleEnum
+from src.schemas.users_schema import UserRoleEnum
 
 class Utcnow(expression.FunctionElement):
     type = DateTime()
