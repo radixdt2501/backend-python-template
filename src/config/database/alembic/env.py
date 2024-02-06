@@ -3,7 +3,11 @@ from logging.config import fileConfig
 from alembic import context
 from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
-from src.models import *
+from src.models.user_model import UserModel
+from src.models.project_model import ProjectModel
+from src.models.project_members_model import ProjectMembersModel
+from src.models.project_documents_model import ProjectDocumentsModel
+
 
 load_dotenv(dotenv_path="src/config/env-files/.env.local")
 
